@@ -1,6 +1,3 @@
-# game-of-life-c
-Based on Conway's Game of Life system based on C. You can choose framerates and loops and two different initial states.
-
 # Conway's Game of Life — C
 
 Console-based Game of Life simulator built in C.
