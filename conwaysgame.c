@@ -218,6 +218,8 @@ unsigned short int borderTypeIO() {
         }
     } while (optionBorder != 1 && optionBorder != 2);
 
+    CLEAR();
+
     return optionBorder;
 }
 
