@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#define GLIDER 1
+#define BLINKER 2
+
+// Defining if the OS is Windows or not
+// Calling Functions for clearing the terminal and doing the sleep
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
     #define SLEEP(ms) Sleep(ms)
@@ -13,7 +18,7 @@
 
 short unsigned int frameRateIO();
 short int loopIO();
-void matrixTypeIO(int inMatrix[][10]);
+unsigned short int  matrixTypeIO(int inMatrix[][10]);
 void gameOfLifeFunction(int initial[][10], int next[][10], int size);
 
 
@@ -26,9 +31,11 @@ int main() {
     // Size of general 10x10 Matrix
     int size = (sizeof(initial) / sizeof(initial[0]));
 
+    // Variables
     short int loopsIn;
     unsigned short int frames;
     unsigned int frameTime;
+    
 
     // Get the Frame Values and then set the amount of time 
     frames = frameRateIO();
@@ -38,7 +45,7 @@ int main() {
     loopsIn = loopIO();
 
     // Choose the Matrix Type
-    matrixTypeIO(initial);
+    unsigned short int type = matrixTypeIO(initial);
 
     printf("\033[?25l"); // Hides Cursor
     
@@ -92,13 +99,11 @@ short int loopIO() {
     printf("(ex: in 2 loops in a 30 fps scenario, will run it 60 times)\n");
     printf("(Type -1 for infinite, but you will need to close the program Manually byt CTRL + C or closing the tab)\nLoops: ");
     do {
-        if (scanf("%hd", &loopsIn) != 1) {
+        if (scanf("%hd", &loopsIn) != 1 || (loopsIn < -1 || loopsIn > 50)) {
+            printf("Please insert a valid Number.\nLoops: ");
             setbuf(stdin, NULL);
         }
-        if ((loopsIn <= 0 || loopsIn > 50) && loopsIn != -1) {
-            printf("Please insert a valid Number.\nLoops: ");
-        }
-    }while ((loopsIn <= 0 || loopsIn > 50) && loopsIn != -1);
+    }while ((loopsIn < -1 || loopsIn > 50));
 
     CLEAR();
 
@@ -106,22 +111,24 @@ short int loopIO() {
 }
 
 // Function that selects the type of the current matrix
-void matrixTypeIO(int inMatrix[][10]) {
+unsigned short int matrixTypeIO(int inMatrix[][10]) {
     int optionMatrix = 0;
+    unsigned short int type; // define the type of matrix
 
+    // Asks the user input
     printf("Select the Initial Matrix Type\n");
     printf("1 - Glider\n2 - BLinker + Blocker\n\nOption: ");
     do {
-        if (scanf("%d", &optionMatrix) != 1) {
+        if (scanf("%d", &optionMatrix) != 1 || (optionMatrix != 1 && optionMatrix != 2)) {
+            printf("Please insert a valid Number.\nOption: ");
             setbuf(stdin, NULL);
         }
-        if (optionMatrix != 1 && optionMatrix != 2) {
-            printf("Please insert a valid Number.\nOption: ");
-        }
     }while (optionMatrix != 1 && optionMatrix != 2);
-    
+
+    // Switches for choosing Options
     switch (optionMatrix) {
         case 1: {
+            type = GLIDER;
             int tempMatrix[10][10] = {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
@@ -140,6 +147,7 @@ void matrixTypeIO(int inMatrix[][10]) {
             break;
         }
         case 2: {
+            type = BLINKER;
             int tempMatrix[10][10] = {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -159,40 +167,48 @@ void matrixTypeIO(int inMatrix[][10]) {
         }
     }
     CLEAR();
-}
+
+    return type;
+} // end of function
 
 // Function that calculates everything in the game of life
-void gameOfLifeFunction(int initial[][10], int next[][10], int size) {
+void gameOfLifeFunction(int initial[][10], int next[][10], int size, unsigned short int type) {
     // Gets the Adjacents/Neighbours Values
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
+    for (int l = 0; l < 10; l++) {
+        for (int c = 0; c < 10; c++) {
             // Declares Sum of Adjacent values
             int sum = 0; 
-            for (int r = i - 1; r <= i + 1; r++) {
-                for (int s = j - 1; s <= j + 1; s++) {
-                // This one if for when we want the cell to die
-                    /*if (r >= 0 && r < size && s >= 0 && s < size && !(r == i && s == j)) {
-                        sum += initial[r][s]; 
-                    }*/
-                // This one is for general cases, makiing the borders "safe"
-                    int wr = (r + size) % size; // -1 -> 9, 0 -> 1
-                    int ws = (s + size) % size;
-                    if (!(wr == i && ws == j)) {
-                        sum += initial[wr][ws]; 
+            for (int r = l - 1; r <= l + 1; r++) {
+                for (int s = c - 1; s <= c + 1; s++) {
+                    switch (type) {
+                        case GLIDER:
+                            // This one is for general cases, makiing the borders "safe"
+                            int wr = (r + size) % size; // -1 -> 9, 0 -> 1
+                            int ws = (s + size) % size;
+                            if (!(wr == l && ws == c)) {
+                                sum += initial[wr][ws]; 
+                            }
+                            break;
+                        case BLINKER:
+                            // This one if for when we want the cell to die
+                            if (r >= 0 && r < size && s >= 0 && s < size && !(r == i && s == j)) {
+                                sum += initial[r][s]; 
+                            }
+                            break;
                     }
                 }        
-            }
+            } 
             // Checks the value for the next Gen
-            switch (initial[i][j]) {
+            switch (initial[l][c]) {
                 case 0:
-                    next[i][j] = (sum == 3) ? 1:0;
+                    next[l][c] = (sum == 3) ? 1:0;
                     break;
                 case 1:
-                    next[i][j] = (sum == 2 || sum == 3) ? 1:0;
+                    next[l][c] = (sum == 2 || sum == 3) ? 1:0;
                     break;
-            } 
-        }
-    }
+            }  // end of sum checking and
+        } // end of columns
+    } // end of lines
     
     // Prints out the visual aspect of the Matrix
     for (int i = 0; i < size; i++) {
@@ -212,4 +228,4 @@ void gameOfLifeFunction(int initial[][10], int next[][10], int size) {
             initial[i][j] = next[i][j];
         }
     }
-}
+} // end of function
