@@ -10,4 +10,4 @@ Console-based Game of Life simulator built in C.
 - Flicker-free terminal rendering
 
 ## How to compile
-gcc main.c -o game && ./game
+gcc conwaysgame.c -o game && ./game
