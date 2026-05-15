@@ -4,7 +4,7 @@ Console-based Game of Life simulator built in C.
 
 ## Features
 - Glider and Blinker + Block presets
-- Toroidal (wraparound) borders
+- Toroidal (wraparound) borders and also Fixed
 - Configurable FPS (1-60)
 - Finite or infinite loop mode
 - Flicker-free terminal rendering
